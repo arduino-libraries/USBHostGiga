@@ -98,6 +98,8 @@ void HAL_HCD_MspInit(HCD_HandleTypeDef* hcdHandle)
     HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
     /* Peripheral clock enable */
+    __HAL_RCC_USB_OTG_HS_ULPI_CLK_SLEEP_DISABLE();
+    __HAL_RCC_USB_OTG_HS_CLK_SLEEP_ENABLE();
     __HAL_RCC_USB_OTG_HS_CLK_ENABLE();
 
     NVIC_SetVector(OTG_HS_IRQn, (uint32_t)&OTG_HS_IRQHandler);
