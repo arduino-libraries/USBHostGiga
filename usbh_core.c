@@ -21,7 +21,6 @@
 /* Includes ------------------------------------------------------------------*/
 #include "usbh_core.h"
 
-
 /** @addtogroup USBH_LIB
   * @{
   */
@@ -156,10 +155,14 @@ USBH_StatusTypeDef  USBH_Init(USBH_HandleTypeDef *phost,
   USBH_Thread_Atrr.stack_size = (8U * configMINIMAL_STACK_SIZE);
 #endif /* defined (USBH_PROCESS_STACK_SIZE) */
 
+  static osRtxThread_t thread_cb;
+
+  USBH_Thread_Atrr.stack_mem  = malloc(USBH_Thread_Atrr.stack_size);
+  USBH_Thread_Atrr.cb_mem  = &thread_cb;
+  USBH_Thread_Atrr.cb_size = sizeof(osRtxThread_t);
+
   USBH_Thread_Atrr.priority = USBH_PROCESS_PRIO;
-  printf("****here*****\n");
   phost->thread = osThreadNew(USBH_Process_OS, phost, &USBH_Thread_Atrr);
-  printf("****done*****\n");
 
 #endif /* (osCMSIS < 0x20000U) */
 #endif /* (USBH_USE_OS == 1U) */
@@ -442,7 +445,7 @@ USBH_StatusTypeDef USBH_ReEnumerate(USBH_HandleTypeDef *phost)
 #if (osCMSIS < 0x20000U)
   (void)osMessagePut(phost->os_event, phost->os_msg, 0U);
 #else
-  (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, NULL);
+  (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, 0U);
 #endif
 #endif
 
@@ -489,7 +492,7 @@ USBH_StatusTypeDef  USBH_Process(USBH_HandleTypeDef *phost)
 #if (osCMSIS < 0x20000U)
         (void)osMessagePut(phost->os_event, phost->os_msg, 0U);
 #else
-        (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, NULL);
+        (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, 0U);
 #endif
 #endif
       }
@@ -530,7 +533,7 @@ USBH_StatusTypeDef  USBH_Process(USBH_HandleTypeDef *phost)
 #if (osCMSIS < 0x20000U)
       (void)osMessagePut(phost->os_event, phost->os_msg, 0U);
 #else
-      (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, NULL);
+      (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, 0U);
 #endif
 #endif
       break;
@@ -567,7 +570,7 @@ USBH_StatusTypeDef  USBH_Process(USBH_HandleTypeDef *phost)
 #if (osCMSIS < 0x20000U)
       (void)osMessagePut(phost->os_event, phost->os_msg, 0U);
 #else
-      (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, NULL);
+      (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, 0U);
 #endif
 #endif
       break;
@@ -596,7 +599,7 @@ USBH_StatusTypeDef  USBH_Process(USBH_HandleTypeDef *phost)
 #if (osCMSIS < 0x20000U)
         (void)osMessagePut(phost->os_event, phost->os_msg, 0U);
 #else
-        (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, NULL);
+        (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, 0U);
 #endif
 #endif
       }
@@ -615,7 +618,7 @@ USBH_StatusTypeDef  USBH_Process(USBH_HandleTypeDef *phost)
 #if (osCMSIS < 0x20000U)
         (void)osMessagePut(phost->os_event, phost->os_msg, 0U);
 #else
-        (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, NULL);
+        (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, 0U);
 #endif
 #endif
       }
@@ -635,7 +638,7 @@ USBH_StatusTypeDef  USBH_Process(USBH_HandleTypeDef *phost)
 #if (osCMSIS < 0x20000U)
       (void)osMessagePut(phost->os_event, phost->os_msg, 0U);
 #else
-      (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, NULL);
+      (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, 0U);
 #endif
 #endif
       break;
@@ -660,7 +663,7 @@ USBH_StatusTypeDef  USBH_Process(USBH_HandleTypeDef *phost)
 #if (osCMSIS < 0x20000U)
       (void)osMessagePut(phost->os_event, phost->os_msg, 0U);
 #else
-      (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, NULL);
+      (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, 0U);
 #endif
 #endif
       break;
@@ -712,7 +715,7 @@ USBH_StatusTypeDef  USBH_Process(USBH_HandleTypeDef *phost)
 #if (osCMSIS < 0x20000U)
       (void)osMessagePut(phost->os_event, phost->os_msg, 0U);
 #else
-      (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, NULL);
+      (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, 0U);
 #endif
 #endif
       break;
@@ -747,7 +750,7 @@ USBH_StatusTypeDef  USBH_Process(USBH_HandleTypeDef *phost)
 #if (osCMSIS < 0x20000U)
       (void)osMessagePut(phost->os_event, phost->os_msg, 0U);
 #else
-      (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, NULL);
+      (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, 0U);
 #endif
 #endif
       break;
@@ -796,7 +799,7 @@ USBH_StatusTypeDef  USBH_Process(USBH_HandleTypeDef *phost)
 #if (osCMSIS < 0x20000U)
       (void)osMessagePut(phost->os_event, phost->os_msg, 0U);
 #else
-      (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, NULL);
+      (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, 0U);
 #endif
 #endif
       break;
@@ -1026,7 +1029,7 @@ static USBH_StatusTypeDef USBH_HandleEnum(USBH_HandleTypeDef *phost)
 #if (osCMSIS < 0x20000U)
           (void)osMessagePut(phost->os_event, phost->os_msg, 0U);
 #else
-          (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, NULL);
+          (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, 0U);
 #endif
 #endif
         }
@@ -1040,7 +1043,7 @@ static USBH_StatusTypeDef USBH_HandleEnum(USBH_HandleTypeDef *phost)
 #if (osCMSIS < 0x20000U)
           (void)osMessagePut(phost->os_event, phost->os_msg, 0U);
 #else
-          (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, NULL);
+          (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, 0U);
 #endif
 #endif
         }
@@ -1059,7 +1062,7 @@ static USBH_StatusTypeDef USBH_HandleEnum(USBH_HandleTypeDef *phost)
 #if (osCMSIS < 0x20000U)
         (void)osMessagePut(phost->os_event, phost->os_msg, 0U);
 #else
-        (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, NULL);
+        (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, 0U);
 #endif
 #endif
       }
@@ -1087,7 +1090,7 @@ static USBH_StatusTypeDef USBH_HandleEnum(USBH_HandleTypeDef *phost)
 #if (osCMSIS < 0x20000U)
           (void)osMessagePut(phost->os_event, phost->os_msg, 0U);
 #else
-          (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, NULL);
+          (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, 0U);
 #endif
 #endif
         }
@@ -1106,7 +1109,7 @@ static USBH_StatusTypeDef USBH_HandleEnum(USBH_HandleTypeDef *phost)
 #if (osCMSIS < 0x20000U)
         (void)osMessagePut(phost->os_event, phost->os_msg, 0U);
 #else
-        (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, NULL);
+        (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, 0U);
 #endif
 #endif
       }
@@ -1203,7 +1206,7 @@ void USBH_LL_PortEnabled(USBH_HandleTypeDef *phost)
 #if (osCMSIS < 0x20000U)
   (void)osMessagePut(phost->os_event, phost->os_msg, 0U);
 #else
-  (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, NULL);
+  (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, 0U);
 #endif
 #endif
 
@@ -1255,7 +1258,7 @@ USBH_StatusTypeDef  USBH_LL_Connect(USBH_HandleTypeDef *phost)
 #if (osCMSIS < 0x20000U)
   (void)osMessagePut(phost->os_event, phost->os_msg, 0U);
 #else
-  (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, NULL);
+  (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, 0U);
 #endif
 #endif
 
@@ -1287,7 +1290,7 @@ USBH_StatusTypeDef  USBH_LL_Disconnect(USBH_HandleTypeDef *phost)
 #if (osCMSIS < 0x20000U)
   (void)osMessagePut(phost->os_event, phost->os_msg, 0U);
 #else
-  (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, NULL);
+  (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, 0U);
 #endif
 #endif
 
@@ -1347,7 +1350,7 @@ USBH_StatusTypeDef  USBH_LL_NotifyURBChange(USBH_HandleTypeDef *phost)
 #if (osCMSIS < 0x20000U)
   (void)osMessagePut(phost->os_event, phost->os_msg, 0U);
 #else
-  (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, NULL);
+  (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, 0U);
 #endif
 
   return USBH_OK;
