@@ -162,8 +162,8 @@ public:
     operator bool() {
         return true;
     }
-    void rx_cb();
+    void rx_cb(uint8_t* data, size_t len);
 private:
-    RingBuffer rxBuffer;
+    RingBufferN<128> rxBuffer;
     rtos::Mutex _mut;
 };

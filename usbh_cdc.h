@@ -433,6 +433,8 @@ void USBH_CDC_TransmitCallback(USBH_HandleTypeDef *phost);
 
 void USBH_CDC_ReceiveCallback(USBH_HandleTypeDef *phost);
 
+void USBH_CDC_PartialReceiveCallback(uint8_t* data, size_t len);
+
 /**
   * @}
   */

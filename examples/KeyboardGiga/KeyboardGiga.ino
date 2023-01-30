@@ -1,7 +1,8 @@
-#include "HIDHost.h"
+#include "USBHostGiga.h"
 
 //REDIRECT_STDOUT_TO(Serial)
 Keyboard keyb;
+HostSerial ser;
 
 void setup() {
   // put your setup code here, to run once:
@@ -9,11 +10,18 @@ void setup() {
   while (!Serial);
   pinMode(PA_15, OUTPUT);
   keyb.begin();
+  ser.begin();
 }
 
 
 void loop() {
   if (keyb.available()) {
-    Serial.println(keyb.read());
+    auto _key = keyb.read();
+    Serial.println(keyb.getAscii(_key));
   }
+  while (ser.available()) {
+    auto _char = ser.read();
+    Serial.write(_char);
+  }
+  //delay(1);
 }

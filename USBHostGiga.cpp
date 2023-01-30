@@ -1,4 +1,4 @@
-#include "HIDHost.h"
+#include "USBHostGiga.h"
 
 RingBufferNGeneric<64, HID_KEYBD_Info_TypeDef> Keyboard::rxBuffer;
 RingBufferNGeneric<64, HID_MOUSE_Info_TypeDef> Mouse::rxBuffer;
@@ -50,16 +50,17 @@ extern "C" USBH_HandleTypeDef hUsbHostHS;
 HostSerial* _hostSerial = nullptr;
 static uint8_t buf[64];
 
-extern "C" void USBH_CDC_ReceiveCallback(USBH_HandleTypeDef *phost) {    
-    _hostSerial->rx_cb();
+extern "C" void USBH_CDC_ReceiveCallback(USBH_HandleTypeDef* phost) {    
+    _hostSerial->rx_cb(buf, sizeof(buf) + USBH_CDC_GetLastReceivedDataSize(phost));
+    //USBH_CDC_Receive(&hUsbHostHS, buf, sizeof(buf));
 }
 
-void HostSerial::rx_cb() {
-    //_mut.trylock();
-    for (int i = 0; i < sizeof(buf); i++) {
-        rxBuffer.store_char(buf[i]);
+void HostSerial::rx_cb(uint8_t* data, size_t len) {
+    _mut.lock();
+    for (int i = 0; i < len; i++) {
+        rxBuffer.store_char(data[i]);
     }
-    //_mut.unlock();
+    _mut.unlock();
 }
 
 extern "C" ApplicationTypeDef Appli_state;
@@ -83,6 +84,9 @@ int HostSerial::available() {
     //USBH_CDC_Stop(&hUsbHostHS);
     _mut.lock();
     auto ret = rxBuffer.available();
+    if (ret == 0) {
+        USBH_CDC_Receive(&hUsbHostHS, buf, sizeof(buf));
+    }
     _mut.unlock();
     return ret;
 }
