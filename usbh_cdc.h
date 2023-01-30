@@ -149,6 +149,7 @@ typedef enum
   CDC_IDLE_STATE = 0U,
   CDC_SET_LINE_CODING_STATE,
   CDC_GET_LAST_LINE_CODING_STATE,
+  CDC_SET_CONTROL_LINE_STATE_STATE,
   CDC_TRANSFER_DATA,
   CDC_ERROR_STATE,
 }
@@ -163,7 +164,7 @@ typedef union _CDC_LineCodingStructure
   struct
   {
 
-    uint32_t             dwDTERate;     /*Data terminal rate, in bits per second*/
+    uint16_t             dwDTERate;     /*Data terminal rate, in bits per second*/
     uint8_t              bCharFormat;   /*Stop bits
     0 - 1 Stop bit
     1 - 1.5 Stop bits
@@ -179,7 +180,17 @@ typedef union _CDC_LineCodingStructure
 }
 CDC_LineCodingTypeDef;
 
+typedef union _CDC_LineStateStructure
+{
+  uint8_t Array[2];
 
+  struct
+  {
+    uint8_t dtr : 1;
+    uint8_t rts : 1;
+  } b;
+}
+CDC_LineStateTypeDef;
 
 /* Header Functional Descriptor
 --------------------------------------------------------------------------------
@@ -357,6 +368,8 @@ typedef struct _CDC_Process
   CDC_DataStateTypeDef              data_tx_state;
   CDC_DataStateTypeDef              data_rx_state;
   uint8_t                           Rx_Poll;
+  uint8_t                           dtr;
+  uint8_t                           rts;
 }
 CDC_HandleTypeDef;
 
@@ -392,6 +405,8 @@ extern USBH_ClassTypeDef  CDC_Class;
 /** @defgroup USBH_CDC_CORE_Exported_FunctionsPrototype
   * @{
   */
+USBH_StatusTypeDef USBH_CDC_SetControlLineState(USBH_HandleTypeDef *phost,
+                                          uint8_t dtr, uint8_t rts);
 
 USBH_StatusTypeDef  USBH_CDC_SetLineCoding(USBH_HandleTypeDef *phost,
                                            CDC_LineCodingTypeDef *linecoding);

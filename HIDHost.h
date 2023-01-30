@@ -1,4 +1,5 @@
 #include "Arduino.h"
+#include "mbed.h"
 #include "usb_host.h"
 #include "usbh_def.h"
 #include "usbh_hid_keybd.h"
@@ -161,5 +162,8 @@ public:
     operator bool() {
         return true;
     }
-    static RingBuffer rxBuffer;
+    void rx_cb();
+private:
+    RingBuffer rxBuffer;
+    rtos::Mutex _mut;
 };

@@ -2,7 +2,6 @@
 
 RingBufferNGeneric<64, HID_KEYBD_Info_TypeDef> Keyboard::rxBuffer;
 RingBufferNGeneric<64, HID_MOUSE_Info_TypeDef> Mouse::rxBuffer;
-RingBuffer HostSerial::rxBuffer;
 
 extern "C" void USBH_HID_EventCallback(USBH_HandleTypeDef *phost) {
     auto kbd_evt = USBH_HID_GetKeybdInfo(phost);
@@ -48,10 +47,19 @@ void Mouse::begin() {
 
 extern "C" USBH_HandleTypeDef hUsbHostHS;
 
+HostSerial* _hostSerial = nullptr;
 static uint8_t buf[64];
+
 extern "C" void USBH_CDC_ReceiveCallback(USBH_HandleTypeDef *phost) {    
-    //USBH_UsrLog("USBH_CDC_Receive");
-    HostSerial::rxBuffer.store_char(buf[0]);
+    _hostSerial->rx_cb();
+}
+
+void HostSerial::rx_cb() {
+    //_mut.trylock();
+    for (int i = 0; i < sizeof(buf); i++) {
+        rxBuffer.store_char(buf[i]);
+    }
+    //_mut.unlock();
 }
 
 extern "C" ApplicationTypeDef Appli_state;
@@ -59,25 +67,31 @@ extern "C" ApplicationTypeDef Appli_state;
 void HostSerial::begin(unsigned long unused, uint16_t config) {
     MX_USB_HOST_Init();
     while (Appli_state != APPLICATION_READY) {
-        Serial.println(Appli_state);
         delay(100);
     }
-    USBH_ErrLog("HostSerial::begin 1");
+    _hostSerial = this;
 
     static CDC_LineCodingTypeDef linecoding;
     linecoding.b.dwDTERate = 115200;
     linecoding.b.bDataBits = 8;
     USBH_CDC_SetLineCoding(&hUsbHostHS, &linecoding);
+    USBH_CDC_SetControlLineState(&hUsbHostHS, 1, 1);
+    USBH_CDC_Receive(&hUsbHostHS, buf, sizeof(buf));
 }
 
 int HostSerial::available() {
-    USBH_CDC_Stop(&hUsbHostHS);
-    USBH_CDC_Receive(&hUsbHostHS, buf, sizeof(buf));
-    return rxBuffer.available();
+    //USBH_CDC_Stop(&hUsbHostHS);
+    _mut.lock();
+    auto ret = rxBuffer.available();
+    _mut.unlock();
+    return ret;
 }
 
 int HostSerial::read() {
-    return rxBuffer.read_char();
+    _mut.lock();
+    auto ret = rxBuffer.read_char();
+    _mut.unlock();
+    return ret;
 }
 
 size_t HostSerial::write(uint8_t) {

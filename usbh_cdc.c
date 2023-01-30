@@ -118,6 +118,9 @@ static USBH_StatusTypeDef GetLineCoding(USBH_HandleTypeDef *phost,
 static USBH_StatusTypeDef SetLineCoding(USBH_HandleTypeDef *phost,
                                         CDC_LineCodingTypeDef *linecoding);
 
+static USBH_StatusTypeDef SetControlLineState(USBH_HandleTypeDef *phost,
+                                        uint8_t dtr, uint8_t rts);
+
 static void CDC_ProcessTransmission(USBH_HandleTypeDef *phost);
 
 static void CDC_ProcessReception(USBH_HandleTypeDef *phost);
@@ -348,6 +351,23 @@ static USBH_StatusTypeDef USBH_CDC_Process(USBH_HandleTypeDef *phost)
       status = USBH_OK;
       break;
 
+    case CDC_SET_CONTROL_LINE_STATE_STATE:
+      req_status = SetControlLineState(phost, CDC_Handle->dtr, CDC_Handle->rts);
+
+      if (req_status == USBH_OK)
+      {
+        CDC_Handle->state = CDC_IDLE_STATE;
+      }
+
+      else
+      {
+        if (req_status != USBH_BUSY)
+        {
+          CDC_Handle->state = CDC_ERROR_STATE;
+        }
+      }
+      break;
+
     case CDC_SET_LINE_CODING_STATE:
       req_status = SetLineCoding(phost, CDC_Handle->pUserLineCoding);
 
@@ -493,6 +513,22 @@ static USBH_StatusTypeDef SetLineCoding(USBH_HandleTypeDef *phost,
   return USBH_CtlReq(phost, linecoding->Array, LINE_CODING_STRUCTURE_SIZE);
 }
 
+static USBH_StatusTypeDef SetControlLineState(USBH_HandleTypeDef *phost,
+                                        uint8_t dtr,  uint8_t rts)
+{
+  phost->Control.setup.b.bmRequestType = USB_H2D | USB_REQ_TYPE_CLASS |
+                                         USB_REQ_RECIPIENT_INTERFACE;
+
+  phost->Control.setup.b.bRequest = CDC_SET_CONTROL_LINE_STATE;
+  phost->Control.setup.b.wValue.w = dtr | (rts << 1);
+
+  phost->Control.setup.b.wIndex.w = 0U;
+
+  phost->Control.setup.b.wLength.w = 0U;
+
+  return USBH_CtlReq(phost, NULL, 0);
+}
+
 /**
   * @brief  This function prepares the state before issuing the class specific commands
   * @param  None
@@ -520,6 +556,31 @@ USBH_StatusTypeDef USBH_CDC_SetLineCoding(USBH_HandleTypeDef *phost,
 
   return USBH_OK;
 }
+
+USBH_StatusTypeDef USBH_CDC_SetControlLineState(USBH_HandleTypeDef *phost,
+                                          uint8_t dtr, uint8_t rts)
+{
+  CDC_HandleTypeDef *CDC_Handle = (CDC_HandleTypeDef *) phost->pActiveClass->pData;
+
+  if (phost->gState == HOST_CLASS)
+  {
+    CDC_Handle->state = CDC_SET_CONTROL_LINE_STATE_STATE;
+    CDC_Handle->dtr = dtr;
+    CDC_Handle->rts = rts;
+
+#if (USBH_USE_OS == 1U)
+    phost->os_msg = (uint32_t)USBH_CLASS_EVENT;
+#if (osCMSIS < 0x20000U)
+    (void)osMessagePut(phost->os_event, phost->os_msg, 0U);
+#else
+    (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, 0U);
+#endif
+#endif
+  }
+
+  return USBH_OK;
+}
+
 
 /**
   * @brief  This function prepares the state before issuing the class specific commands
