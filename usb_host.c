@@ -23,6 +23,7 @@
 #include "usb_host.h"
 #include "usbh_core.h"
 #include "usbh_hid.h"
+#include "usbh_cdc.h"
 
 /* USER CODE BEGIN Includes */
 
@@ -65,10 +66,13 @@ static void USBH_UserProcess(USBH_HandleTypeDef *phost, uint8_t id);
   * Init USB host library, add supported class and start the library
   * @retval None
   */
+static int begun = 0;
 void MX_USB_HOST_Init(void)
 {
   /* USER CODE BEGIN USB_HOST_Init_PreTreatment */
-
+  if (begun) {
+    return;
+  }
   /* USER CODE END USB_HOST_Init_PreTreatment */
 
   /* Init host Library, add supported class and start the library. */
@@ -80,12 +84,16 @@ void MX_USB_HOST_Init(void)
   {
     Error_Handler();
   }
+  if (USBH_RegisterClass(&hUsbHostHS, USBH_CDC_CLASS) != USBH_OK)
+  {
+    Error_Handler();
+  }
   if (USBH_Start(&hUsbHostHS) != USBH_OK)
   {
     Error_Handler();
   }
   /* USER CODE BEGIN USB_HOST_Init_PostTreatment */
-
+  begun = 1;
   /* USER CODE END USB_HOST_Init_PostTreatment */
 }
 

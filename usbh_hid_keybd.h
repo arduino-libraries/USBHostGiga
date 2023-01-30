@@ -27,7 +27,6 @@ extern "C" {
 
 /* Includes ------------------------------------------------------------------*/
 #include "usbh_hid.h"
-#include "usbh_hid_keybd.h"
 
 /** @addtogroup USBH_LIB
   * @{
