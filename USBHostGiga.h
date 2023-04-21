@@ -59,7 +59,7 @@ void RingBufferNGeneric<N, T>::store_elem( T c )
   // and so we don't write the character or advance the head.
   if (!isFull())
   {
-    _aucBuffer[_iHead] = c ;
+    memcpy(&_aucBuffer[_iHead], &c, sizeof(c));
     _iHead = nextIndex(_iHead);
     _numElems++;
   }
