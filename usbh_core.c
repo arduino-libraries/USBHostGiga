@@ -145,7 +145,7 @@ USBH_StatusTypeDef  USBH_Init(USBH_HandleTypeDef *phost,
 
   static osMessageQueueAttr_t msgq_attrs;
   static char _queue_mem[1024 * sizeof(uint32_t) + sizeof(osRtxMessageQueue_t)];
-  static osRtxMessageQueue_t _obj_mem;
+  static osRtxMessageQueue_t _obj_mem[MSGQUEUE_OBJECTS];
 
   msgq_attrs.mq_mem = _queue_mem;
   msgq_attrs.mq_size = sizeof(_queue_mem);
