@@ -1,3 +1,5 @@
+#ifndef __USBHOSTGIGA_H
+#define __USBHOSTGIGA_H
 #include "Arduino.h"
 #include "mbed.h"
 #include "usb_host.h"
@@ -167,3 +169,5 @@ private:
     RingBufferN<128> rxBuffer;
     rtos::Mutex _mut;
 };
+
+#endif /* __USBHOSTGIGA_H */
